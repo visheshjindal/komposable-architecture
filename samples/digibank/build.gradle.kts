@@ -80,6 +80,7 @@ dependencies {
     implementation(libs.ktor.serialization.kotlinx.json)
     implementation(libs.ktor.client.content.negotiation)
     implementation(libs.androidx.navigation.compose)
+    implementation(libs.androidx.lifecycle.runtime.compose)
 
     testImplementation(project(":komposable-architecture-test"))
     testImplementation(libs.kotestMatchers)

@@ -1,5 +1,6 @@
 package com.toggl.komposable.sample.digibank.accounts
 
+import android.util.Log
 import com.toggl.komposable.architecture.ReduceResult
 import com.toggl.komposable.architecture.Reducer
 import com.toggl.komposable.extensions.withFlowEffect
