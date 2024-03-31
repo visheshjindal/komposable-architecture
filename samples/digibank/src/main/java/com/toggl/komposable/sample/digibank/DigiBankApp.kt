@@ -1,7 +1,7 @@
 package com.toggl.komposable.sample.digibank
 
+import android.util.Log
 import androidx.compose.animation.AnimatedContent
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -23,6 +23,8 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
@@ -35,10 +37,17 @@ import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.toggl.komposable.sample.digibank.accounts.Accounts
 import com.toggl.komposable.sample.digibank.portfolio.Portfolio
+import com.toggl.komposable.sample.digibank.portfolio.PortfolioAction
+import com.toggl.komposable.sample.digibank.portfolio.PortfolioState
 import com.toggl.komposable.sample.digibank.settings.SettingsPage
 
 @Composable
 fun DigiBankApp() {
+    val state by appStore.state.collectAsState(initial = PortfolioState())
+    LaunchedEffect(Unit) {
+        Log.e("DigiBankApp", "Loading Portfolio")
+        appStore.send(PortfolioAction.LoadPortfolio)
+    }
     var selectedItem by remember { mutableIntStateOf(0) }
     val items = listOf("Accounts", "Portfolio", "Settings")
     Scaffold(
@@ -74,7 +83,7 @@ fun DigiBankApp() {
             AnimatedContent(selectedItem, label = "Dashboard Content") { selectedItem ->
                 when (selectedItem) {
                     0 -> Accounts()
-                    1 -> Portfolio()
+                    1 -> Portfolio(state)
                     2 -> SettingsPage()
                 }
             }
