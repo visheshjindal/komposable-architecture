@@ -1,6 +1,7 @@
 package com.toggl.komposable.sample.digibank
 
 import com.toggl.komposable.architecture.Reducer
+import com.toggl.komposable.architecture.WrapperAction
 import com.toggl.komposable.extensions.combine
 import com.toggl.komposable.extensions.createStore
 import com.toggl.komposable.extensions.pullback
@@ -11,6 +12,7 @@ import com.toggl.komposable.sample.digibank.portfolio.LoadPortfolioEffect
 import com.toggl.komposable.sample.digibank.portfolio.PortfolioAction
 import com.toggl.komposable.sample.digibank.portfolio.PortfolioReducer
 import com.toggl.komposable.sample.digibank.portfolio.PortfolioUIState
+import com.toggl.komposable.sample.digibank.settings.SettingAction
 import com.toggl.komposable.sample.digibank.transactions.LoadTransactionsEffect
 import com.toggl.komposable.sample.digibank.transactions.TransactionsAction
 import com.toggl.komposable.sample.digibank.transactions.TransactionsReducer
@@ -25,20 +27,26 @@ data class AppState(
     val isLongPressBalanceEnabled: Boolean = false,
     val isLongPressPortfolioEnabled: Boolean = false,
     val showCurrency: Boolean = true,
-    val portfolioUIState: PortfolioUIState,
-    val accountDetailsUIState: AccountDetailsUIState,
-    val transactionsUIState: TransactionsUIState
+    val portfolioUIState: PortfolioUIState = PortfolioUIState(),
+    val accountDetailsUIState: AccountDetailsUIState = AccountDetailsUIState(),
+    val transactionsUIState: TransactionsUIState = TransactionsUIState()
 )
 
 sealed class GlobalAction {
+    @WrapperAction
     data class PortfolioActions(val action: PortfolioAction) : GlobalAction()
+    @WrapperAction
     data class AccountDetailsActions(val action: AccountDetailsAction) : GlobalAction()
+    @WrapperAction
     data class TransactionsActions(val action: TransactionsAction) : GlobalAction()
+    @WrapperAction
+    data class SettingActions(val action: SettingAction) : GlobalAction()
 }
 
 val transactionsReducer = TransactionsReducer(LoadTransactionsEffect())
 val accountDetailsReducer = AccountDetailsReducer()
 val portfolioReducer = PortfolioReducer(LoadPortfolioEffect())
+val globalReducerInstance = GlobalReducer()
 
 val globalReducer: Reducer<AppState, GlobalAction> = combine(
     transactionsReducer.pullback(
@@ -58,7 +66,12 @@ val globalReducer: Reducer<AppState, GlobalAction> = combine(
         mapToLocalAction = { (it as? GlobalAction.PortfolioActions)?.action },
         mapToGlobalState = { globalState, portfolioState -> globalState.copy(portfolioUIState = portfolioState) },
         mapToGlobalAction = { GlobalAction.PortfolioActions(it) }
-    )
+    ),
+    globalReducerInstance.pullback(
+        mapToLocalState = { it },
+        mapToLocalAction = { it },
+        mapToGlobalState = { _, state -> state },
+        mapToGlobalAction = { it })
 )
 
 /**
@@ -87,11 +100,7 @@ val storeScopeProvider = StoreScopeProvider { coroutineScope }
  * This is used to manage the state of the app.
  */
 val appStore = createStore(
-    initialState = AppState(
-        portfolioUIState = PortfolioUIState(),
-        accountDetailsUIState = AccountDetailsUIState(),
-        transactionsUIState = TransactionsUIState()
-    ),
+    initialState = AppState(),
     reducer = globalReducer,
     storeScopeProvider = storeScopeProvider,
     dispatcherProvider = dispatcherProvider,
