@@ -4,4 +4,8 @@
     <string name="to_improve_your_financial_health_save_money_invest_carefully_and_learn_about_finance">To improve your financial health, save money,\n invest carefully, and learn about finance.</string>
     <string name="current_worth">Current Value</string>
     <string name="transactions">Transactions</string>
+    <string name="long_press_to_show_balance">Long Press to Show Balance</string>
+    <string name="long_press_to_portfolio_value">Long Press to Portfolio Value</string>
+    <string name="show_currency">Show Currency</string>
+    <string name="settings">Settings</string>
 </resources>

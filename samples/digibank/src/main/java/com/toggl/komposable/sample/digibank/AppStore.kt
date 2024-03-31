@@ -7,9 +7,11 @@ import com.toggl.komposable.extensions.pullback
 import com.toggl.komposable.sample.digibank.accounts.AccountDetailsAction
 import com.toggl.komposable.sample.digibank.accounts.AccountDetailsReducer
 import com.toggl.komposable.sample.digibank.accounts.AccountDetailsUIState
+import com.toggl.komposable.sample.digibank.portfolio.LoadPortfolioEffect
 import com.toggl.komposable.sample.digibank.portfolio.PortfolioAction
 import com.toggl.komposable.sample.digibank.portfolio.PortfolioReducer
 import com.toggl.komposable.sample.digibank.portfolio.PortfolioUIState
+import com.toggl.komposable.sample.digibank.transactions.LoadTransactionsEffect
 import com.toggl.komposable.sample.digibank.transactions.TransactionsAction
 import com.toggl.komposable.sample.digibank.transactions.TransactionsReducer
 import com.toggl.komposable.sample.digibank.transactions.TransactionsUIState
@@ -20,6 +22,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlin.coroutines.CoroutineContext
 
 data class AppState(
+    val isLongPressBalanceEnabled: Boolean = false,
+    val isLongPressPortfolioEnabled: Boolean = false,
+    val showCurrency: Boolean = true,
     val portfolioUIState: PortfolioUIState,
     val accountDetailsUIState: AccountDetailsUIState,
     val transactionsUIState: TransactionsUIState
@@ -31,9 +36,9 @@ sealed class GlobalAction {
     data class TransactionsActions(val action: TransactionsAction) : GlobalAction()
 }
 
-val transactionsReducer = TransactionsReducer()
+val transactionsReducer = TransactionsReducer(LoadTransactionsEffect())
 val accountDetailsReducer = AccountDetailsReducer()
-val portfolioReducer = PortfolioReducer()
+val portfolioReducer = PortfolioReducer(LoadPortfolioEffect())
 
 val globalReducer: Reducer<AppState, GlobalAction> = combine(
     transactionsReducer.pullback(

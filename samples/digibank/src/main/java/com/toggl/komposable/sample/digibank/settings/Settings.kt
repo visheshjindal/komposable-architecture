@@ -10,22 +10,22 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.toggl.komposable.sample.digibank.R
 
 @Composable
 fun SettingsPage() {
-    // Create a Column with a list of items
     Column {
-        // Create a list of items with the label and switch
         Text(
-            "Settings",
+            text = stringResource(R.string.settings),
             style = MaterialTheme.typography.displaySmall,
             modifier = Modifier.padding(16.dp)
         )
         listOf(
-            "Show Balance" to true,
-            "Show Portfolio Value" to true,
-            "Show Transactions" to true,
+            stringResource(R.string.long_press_to_show_balance) to false,
+            stringResource(R.string.long_press_to_portfolio_value) to false,
+            stringResource(R.string.show_currency) to true,
         ).forEach { (label, isChecked) ->
             // Create a Row with the label and switch
             Card(

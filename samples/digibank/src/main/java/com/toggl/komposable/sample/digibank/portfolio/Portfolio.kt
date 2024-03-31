@@ -37,8 +37,7 @@ fun Portfolio() {
     )
 
     val portfolioState by portfolioStore.state.collectAsStateWithLifecycle(
-        initialValue = PortfolioUIState(),
-        minActiveState = androidx.lifecycle.Lifecycle.State.RESUMED
+        initialValue = PortfolioUIState()
     )
 
     LaunchedEffect(Unit) {
