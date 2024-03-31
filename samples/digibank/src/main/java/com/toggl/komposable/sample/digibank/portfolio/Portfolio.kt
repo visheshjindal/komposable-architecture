@@ -16,12 +16,12 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.toggl.komposable.sample.digibank.GlobalAction
 import com.toggl.komposable.sample.digibank.R
 import com.toggl.komposable.sample.digibank.appStore
@@ -36,7 +36,10 @@ fun Portfolio() {
         mapToGlobalAction = { GlobalAction.PortfolioActions(it) }
     )
 
-    val portfolioState by portfolioStore.state.collectAsState(initial = PortfolioUIState())
+    val portfolioState by portfolioStore.state.collectAsStateWithLifecycle(
+        initialValue = PortfolioUIState(),
+        minActiveState = androidx.lifecycle.Lifecycle.State.RESUMED
+    )
 
     LaunchedEffect(Unit) {
         portfolioStore.send(PortfolioAction.LoadPortfolio)

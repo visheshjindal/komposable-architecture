@@ -15,13 +15,13 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.toggl.komposable.sample.digibank.GlobalAction
 import com.toggl.komposable.sample.digibank.appStore
 import com.toggl.komposable.sample.digibank.extenstions.toCommaSeparatedString
@@ -38,7 +38,7 @@ fun Accounts() {
         accountStore.send(AccountDetailsAction.LoadAccountDetails)
     }
 
-    val accountDetails by accountStore.state.collectAsState(initial = AccountDetailsUIState())
+    val accountDetails by accountStore.state.collectAsStateWithLifecycle(initialValue = AccountDetailsUIState())
 
     Column(
         modifier = Modifier
