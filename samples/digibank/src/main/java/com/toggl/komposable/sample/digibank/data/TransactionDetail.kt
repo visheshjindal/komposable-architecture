@@ -7,5 +7,5 @@ data class TransactionDetails(
     val date: String,
     val description: String,
     val amount: Double,
-    val currency: String
+    val currency: String = "USD"
 )

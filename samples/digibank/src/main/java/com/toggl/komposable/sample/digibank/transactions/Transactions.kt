@@ -35,11 +35,13 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.toggl.komposable.sample.digibank.AppState
 import com.toggl.komposable.sample.digibank.GlobalAction
 import com.toggl.komposable.sample.digibank.R
 import com.toggl.komposable.sample.digibank.appStore
 import com.toggl.komposable.sample.digibank.data.TransactionDetails
 import com.toggl.komposable.sample.digibank.extenstions.toCommaSeparatedString
+import com.toggl.komposable.sample.digibank.extenstions.toFormattedCurrencyString
 import com.toggl.komposable.sample.digibank.extenstions.toFormattedDateString
 
 @Composable
@@ -55,9 +57,9 @@ fun Transactions() {
     }
 
     val transactions by transactionViewStore.state.collectAsStateWithLifecycle(
-        initialValue = TransactionsUIState(),
-        minActiveState = Lifecycle.State.RESUMED
-    )
+        initialValue = TransactionsUIState())
+
+    val appState by appStore.state.collectAsStateWithLifecycle(initialValue = AppState())
 
     AnimatedContent(targetState = transactions.isLoading, label = "Transaction View") {isLoading ->
         if (isLoading) {
@@ -65,13 +67,13 @@ fun Transactions() {
                 CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
             }
         } else {
-            TransactionListView(transactions.transactions)
+            TransactionListView(transactions.transactions, showCurrency = appState.showCurrency)
         }
     }
 }
 
 @Composable
-fun TransactionListView(transactions: List<TransactionDetails>) {
+fun TransactionListView(transactions: List<TransactionDetails>, showCurrency: Boolean) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -104,13 +106,15 @@ fun TransactionListView(transactions: List<TransactionDetails>) {
                         ) {
                             Text(transactions.description, style = MaterialTheme.typography.bodyMedium)
                             Spacer(modifier = Modifier.height(8.dp))
-                            Text("${transactions.currency} ${transactions.amount.toCommaSeparatedString()}", style = MaterialTheme.typography.labelLarge)
+                            Text(transactions.amount.toFormattedCurrencyString(transactions.currency, showCurrency), style = MaterialTheme.typography.labelLarge)
                             Text(transactions.date.toFormattedDateString(), style = MaterialTheme.typography.bodySmall)
                         }
                         Icon(
                             Icons.Sharp.ArrowOutward,
                             contentDescription = "Transaction Icon",
-                            modifier = Modifier.padding(16.dp).rotate(if (transactions.amount < 0) 0f else 180f),
+                            modifier = Modifier
+                                .padding(16.dp)
+                                .rotate(if (transactions.amount < 0) 0f else 180f),
                             tint = if (transactions.amount > 0) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error
                         )
                     }

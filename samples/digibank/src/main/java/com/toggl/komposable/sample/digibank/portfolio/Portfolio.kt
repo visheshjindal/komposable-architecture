@@ -22,11 +22,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.toggl.komposable.sample.digibank.AppState
 import com.toggl.komposable.sample.digibank.GlobalAction
 import com.toggl.komposable.sample.digibank.R
 import com.toggl.komposable.sample.digibank.appStore
 import com.toggl.komposable.sample.digibank.data.PortfolioData
 import com.toggl.komposable.sample.digibank.extenstions.toCommaSeparatedString
+import com.toggl.komposable.sample.digibank.extenstions.toFormattedCurrencyString
+import com.toggl.komposable.sample.digibank.settings.SettingAction
 
 @Composable
 fun Portfolio() {
@@ -39,6 +42,8 @@ fun Portfolio() {
     val portfolioState by portfolioStore.state.collectAsStateWithLifecycle(
         initialValue = PortfolioUIState()
     )
+
+    val appState by appStore.state.collectAsStateWithLifecycle(initialValue = AppState())
 
     LaunchedEffect(Unit) {
         portfolioStore.send(PortfolioAction.LoadPortfolio)
@@ -63,7 +68,7 @@ fun Portfolio() {
                     CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
                 }
             } else {
-                PortfolioList(portfolioState.portfolioDataList)
+                PortfolioList(portfolioState.portfolioDataList, appState.showCurrency)
             }
         }
 
@@ -75,7 +80,7 @@ fun Portfolio() {
  * @param portfolioData List of [PortfolioData]
  */
 @Composable
-fun PortfolioList(portfolioData: List<PortfolioData>) {
+fun PortfolioList(portfolioData: List<PortfolioData>, showCurrency: Boolean) {
     LazyColumn {
         items(portfolioData, key = { it.type }) {
             Card(
@@ -93,7 +98,7 @@ fun PortfolioList(portfolioData: List<PortfolioData>) {
                         style = MaterialTheme.typography.bodySmall
                     )
                     Text(
-                        text = "${it.currency} ${it.value.toCommaSeparatedString()}",
+                        text = it.value.toFormattedCurrencyString(it.currency, showCurrency),
                         style = MaterialTheme.typography.titleMedium
                     )
                 }

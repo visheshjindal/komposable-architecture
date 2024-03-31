@@ -4,7 +4,7 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class PortfolioData(
-    val currency: String,
+    val currency: String = "USD",
     val type: String,
     val value: Double,
 )

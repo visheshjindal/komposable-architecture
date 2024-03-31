@@ -22,9 +22,10 @@ import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.toggl.komposable.sample.digibank.AppState
 import com.toggl.komposable.sample.digibank.GlobalAction
 import com.toggl.komposable.sample.digibank.appStore
-import com.toggl.komposable.sample.digibank.extenstions.toCommaSeparatedString
+import com.toggl.komposable.sample.digibank.extenstions.toFormattedCurrencyString
 import com.toggl.komposable.sample.digibank.transactions.Transactions
 
 @Composable
@@ -39,6 +40,7 @@ fun Accounts() {
     }
 
     val accountDetails by accountStore.state.collectAsStateWithLifecycle(initialValue = AccountDetailsUIState())
+    val showCurrency by appStore.state.collectAsStateWithLifecycle(initialValue = AppState())
 
     Column(
         modifier = Modifier
@@ -46,7 +48,7 @@ fun Accounts() {
         horizontalAlignment = CenterHorizontally
     ) {
         Text(
-            text = "${accountDetails.accountDetails.currency} ${accountDetails.accountDetails.balance.toCommaSeparatedString()}",
+            text = accountDetails.accountDetails.balance.toFormattedCurrencyString(accountDetails.accountDetails.currency, showCurrency.showCurrency),
             style = MaterialTheme.typography.displaySmall,
             maxLines = 1,
             textAlign = TextAlign.Justify
