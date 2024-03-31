@@ -1,6 +1,8 @@
-package com.toggl.komposable.sample.digibank.datasource
+package com.toggl.komposable.sample.digibank.data.datasource
 
-import com.toggl.komposable.sample.digibank.portfolio.data.PortfolioData
+import com.toggl.komposable.sample.digibank.data.AccountDetails
+import com.toggl.komposable.sample.digibank.data.PortfolioData
+import com.toggl.komposable.sample.digibank.data.TransactionDetails
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.engine.HttpClientEngine
@@ -25,5 +27,15 @@ class NetworkClient(
     suspend fun fetchPortfolio(): Result<List<PortfolioData>> = runCatching {
         delay(1000)
         client.get("$baseUrl/portfolio").body()
+    }
+
+    suspend fun fetchAccount(): Result<AccountDetails> = runCatching {
+        delay(1000)
+        client.get("$baseUrl/account").body()
+    }
+
+    suspend fun fetchTransactions(): Result<List<TransactionDetails>> = runCatching {
+        delay(1000)
+        client.get("$baseUrl/transactions").body()
     }
 }

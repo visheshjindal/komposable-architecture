@@ -1,7 +1,5 @@
 package com.toggl.komposable.sample.digibank
 
-import android.util.Log
-import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -13,7 +11,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountBalance
 import androidx.compose.material.icons.filled.Addchart
-import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -23,55 +20,33 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
 import com.toggl.komposable.sample.digibank.accounts.Accounts
 import com.toggl.komposable.sample.digibank.portfolio.Portfolio
-import com.toggl.komposable.sample.digibank.portfolio.PortfolioAction
-import com.toggl.komposable.sample.digibank.portfolio.PortfolioState
 import com.toggl.komposable.sample.digibank.settings.SettingsPage
 
 @Composable
 fun DigiBankApp() {
-    val state by appStore.state.collectAsState(initial = PortfolioState())
-    LaunchedEffect(Unit) {
-        Log.e("DigiBankApp", "Loading Portfolio")
-        appStore.send(PortfolioAction.LoadPortfolio)
-    }
-    var selectedItem by remember { mutableIntStateOf(0) }
-    val items = listOf("Accounts", "Portfolio", "Settings")
+    val navController = rememberNavController()
     Scaffold(
         topBar = {
             GreetingsAppBar()
         },
         bottomBar = {
-            NavigationBar {
-                items.forEachIndexed { index, label ->
-                    NavigationBarItem(
-                        icon = {
-                            when (index) {
-                                0 -> Icon(Icons.Filled.AccountBalance, contentDescription = label)
-                                1 -> Icon(Icons.Filled.Addchart, contentDescription = label)
-                                2 -> Icon(Icons.Filled.Settings, contentDescription = label)
-                                else -> Icon(Icons.Filled.Home, contentDescription = label)
-                            }
-                        },
-                        label = { Text(label) },
-                        onClick = { selectedItem = index },
-                        selected = selectedItem == index
-                    )
-                }
-            }
+            BottomNavigationBar(navController)
         }
     ) {
         Surface(
@@ -80,14 +55,50 @@ fun DigiBankApp() {
                 .padding(it),
             color = MaterialTheme.colorScheme.background
         ) {
-            AnimatedContent(selectedItem, label = "Dashboard Content") { selectedItem ->
-                when (selectedItem) {
-                    0 -> Accounts()
-                    1 -> Portfolio(state)
-                    2 -> SettingsPage()
-                }
-            }
+            NavigationHost(navController)
         }
+    }
+}
+
+sealed class BottomNavigationItems(val route: String, val icon: ImageVector, val label: String) {
+    data object Accounts : BottomNavigationItems("accounts", Icons.Filled.AccountBalance, "Accounts")
+    data object Portfolio : BottomNavigationItems("portfolio", Icons.Filled.Addchart, "Portfolio")
+    data object Settings : BottomNavigationItems("settings", Icons.Filled.Settings, "Settings")
+}
+
+val bottomNavigationItems = listOf(
+    BottomNavigationItems.Accounts,
+    BottomNavigationItems.Portfolio,
+    BottomNavigationItems.Settings
+)
+
+@Composable
+fun BottomNavigationBar(navController: NavController) {
+    NavigationBar {
+        val navBackStackEntry by navController.currentBackStackEntryAsState()
+        val currentRoute = navBackStackEntry?.destination?.route
+
+        bottomNavigationItems.forEach { screen ->
+            NavigationBarItem(
+                icon = { Icon(screen.icon, contentDescription = screen.label) },
+                label = { Text(screen.label) },
+                selected = currentRoute == screen.route,
+                onClick = {
+                    navController.navigate(screen.route) {
+                        launchSingleTop = true
+                    }
+                }
+            )
+        }
+    }
+}
+
+@Composable
+fun NavigationHost(navController: NavHostController) {
+    NavHost(navController, startDestination = BottomNavigationItems.Accounts.route) {
+        composable(BottomNavigationItems.Accounts.route) { Accounts() }
+        composable(BottomNavigationItems.Portfolio.route) { Portfolio() }
+        composable(BottomNavigationItems.Settings.route) { SettingsPage() }
     }
 }
 

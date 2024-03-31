@@ -1,7 +1,10 @@
 package com.toggl.komposable.sample.digibank.portfolio
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -12,14 +15,33 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.toggl.komposable.sample.digibank.GlobalAction
 import com.toggl.komposable.sample.digibank.R
-import com.toggl.komposable.sample.digibank.portfolio.data.PortfolioData
+import com.toggl.komposable.sample.digibank.appStore
+import com.toggl.komposable.sample.digibank.data.PortfolioData
+import com.toggl.komposable.sample.digibank.extenstions.toCommaSeparatedString
 
 @Composable
-fun Portfolio(state: PortfolioState) {
+fun Portfolio() {
+
+    val portfolioStore = appStore.view<PortfolioUIState, PortfolioAction>(
+        mapToLocalState = { it.portfolioUIState },
+        mapToGlobalAction = { GlobalAction.PortfolioActions(it) }
+    )
+
+    val portfolioState by portfolioStore.state.collectAsState(initial = PortfolioUIState())
+
+    LaunchedEffect(Unit) {
+        portfolioStore.send(PortfolioAction.LoadPortfolio)
+    }
+
     Column(
         modifier = Modifier.padding(horizontal = 16.dp)
     ) {
@@ -29,11 +51,20 @@ fun Portfolio(state: PortfolioState) {
             style = MaterialTheme.typography.bodyMedium
         )
         Spacer(modifier = Modifier.height(16.dp))
-        if (state.isLoading) {
-            CircularProgressIndicator()
-        } else {
-            PortfolioList(state.portfolioDataList)
+
+        AnimatedContent(
+            targetState = portfolioState.isLoading,
+            label = "Portfolio Content"
+        ) { isLoading ->
+            if (isLoading) {
+                Box(modifier = Modifier.fillMaxSize()) {
+                    CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+                }
+            } else {
+                PortfolioList(portfolioState.portfolioDataList)
+            }
         }
+
     }
 }
 
@@ -49,14 +80,20 @@ fun PortfolioList(portfolioData: List<PortfolioData>) {
                 modifier = Modifier
                     .height(100.dp)
                     .fillMaxWidth(),
-            ){
+            ) {
                 Column(
                     modifier = Modifier.padding(16.dp)
                 ) {
                     Text(it.type, style = MaterialTheme.typography.titleMedium)
                     Spacer(modifier = Modifier.weight(1f))
-                    Text(stringResource(R.string.current_worth), style = MaterialTheme.typography.bodySmall)
-                    Text(text = "$${it.value}", style = MaterialTheme.typography.titleMedium)
+                    Text(
+                        stringResource(R.string.current_worth),
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                    Text(
+                        text = "${it.currency} ${it.value.toCommaSeparatedString()}",
+                        style = MaterialTheme.typography.titleMedium
+                    )
                 }
             }
             Spacer(modifier = Modifier.height(8.dp))

@@ -1,13 +1,60 @@
 package com.toggl.komposable.sample.digibank
 
+import com.toggl.komposable.architecture.Reducer
+import com.toggl.komposable.extensions.combine
 import com.toggl.komposable.extensions.createStore
+import com.toggl.komposable.extensions.pullback
+import com.toggl.komposable.sample.digibank.accounts.AccountDetailsAction
+import com.toggl.komposable.sample.digibank.accounts.AccountDetailsReducer
+import com.toggl.komposable.sample.digibank.accounts.AccountDetailsUIState
+import com.toggl.komposable.sample.digibank.portfolio.PortfolioAction
 import com.toggl.komposable.sample.digibank.portfolio.PortfolioReducer
-import com.toggl.komposable.sample.digibank.portfolio.PortfolioState
+import com.toggl.komposable.sample.digibank.portfolio.PortfolioUIState
+import com.toggl.komposable.sample.digibank.transactions.TransactionsAction
+import com.toggl.komposable.sample.digibank.transactions.TransactionsReducer
+import com.toggl.komposable.sample.digibank.transactions.TransactionsUIState
 import com.toggl.komposable.scope.DispatcherProvider
 import com.toggl.komposable.scope.StoreScopeProvider
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlin.coroutines.CoroutineContext
+
+data class AppState(
+    val portfolioUIState: PortfolioUIState,
+    val accountDetailsUIState: AccountDetailsUIState,
+    val transactionsUIState: TransactionsUIState
+)
+
+sealed class GlobalAction {
+    data class PortfolioActions(val action: PortfolioAction) : GlobalAction()
+    data class AccountDetailsActions(val action: AccountDetailsAction) : GlobalAction()
+    data class TransactionsActions(val action: TransactionsAction) : GlobalAction()
+}
+
+val transactionsReducer = TransactionsReducer()
+val accountDetailsReducer = AccountDetailsReducer()
+val portfolioReducer = PortfolioReducer()
+
+val globalReducer: Reducer<AppState, GlobalAction> = combine(
+    transactionsReducer.pullback(
+        mapToLocalState = { it.transactionsUIState },
+        mapToLocalAction = { (it as? GlobalAction.TransactionsActions)?.action },
+        mapToGlobalState = { globalState, transactionsState -> globalState.copy(transactionsUIState = transactionsState) },
+        mapToGlobalAction = { GlobalAction.TransactionsActions(it) }
+    ),
+    accountDetailsReducer.pullback(
+        mapToLocalState = { it.accountDetailsUIState },
+        mapToLocalAction = { (it as? GlobalAction.AccountDetailsActions)?.action },
+        mapToGlobalState = { globalState, accountDetailsState -> globalState.copy(accountDetailsUIState = accountDetailsState) },
+        mapToGlobalAction = { GlobalAction.AccountDetailsActions(it) }
+    ),
+    portfolioReducer.pullback(
+        mapToLocalState = { it.portfolioUIState },
+        mapToLocalAction = { (it as? GlobalAction.PortfolioActions)?.action },
+        mapToGlobalState = { globalState, portfolioState -> globalState.copy(portfolioUIState = portfolioState) },
+        mapToGlobalAction = { GlobalAction.PortfolioActions(it) }
+    )
+)
 
 /**
  * The dispatcher provider used by the app.
@@ -35,8 +82,12 @@ val storeScopeProvider = StoreScopeProvider { coroutineScope }
  * This is used to manage the state of the app.
  */
 val appStore = createStore(
-    initialState = PortfolioState(),
-    reducer = PortfolioReducer(),
+    initialState = AppState(
+        portfolioUIState = PortfolioUIState(),
+        accountDetailsUIState = AccountDetailsUIState(),
+        transactionsUIState = TransactionsUIState()
+    ),
+    reducer = globalReducer,
     storeScopeProvider = storeScopeProvider,
     dispatcherProvider = dispatcherProvider,
 )
