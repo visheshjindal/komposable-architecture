@@ -3,6 +3,7 @@ package com.toggl.komposable.sample.digibank.data.datasource
 import com.toggl.komposable.sample.digibank.data.AccountDetails
 import com.toggl.komposable.sample.digibank.data.PortfolioData
 import com.toggl.komposable.sample.digibank.data.TransactionDetails
+import com.toggl.komposable.sample.digibank.data.UserDetails
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.engine.HttpClientEngine
@@ -37,5 +38,10 @@ class NetworkClient(
     suspend fun fetchTransactions(): Result<List<TransactionDetails>> = runCatching {
         delay(3000)
         client.get("$baseUrl/transactions").body()
+    }
+
+    suspend fun fetchUserDetails(): Result<UserDetails> = runCatching {
+        delay(1000)
+        client.get("$baseUrl/userDetails").body()
     }
 }

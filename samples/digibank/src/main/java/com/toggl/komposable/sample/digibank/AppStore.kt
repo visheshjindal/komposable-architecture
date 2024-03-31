@@ -12,6 +12,10 @@ import com.toggl.komposable.sample.digibank.portfolio.LoadPortfolioEffect
 import com.toggl.komposable.sample.digibank.portfolio.PortfolioAction
 import com.toggl.komposable.sample.digibank.portfolio.PortfolioReducer
 import com.toggl.komposable.sample.digibank.portfolio.PortfolioUIState
+import com.toggl.komposable.sample.digibank.profile.LoadProfileEffect
+import com.toggl.komposable.sample.digibank.profile.ProfileAction
+import com.toggl.komposable.sample.digibank.profile.ProfileReducer
+import com.toggl.komposable.sample.digibank.profile.ProfileUIState
 import com.toggl.komposable.sample.digibank.settings.SettingAction
 import com.toggl.komposable.sample.digibank.transactions.LoadTransactionsEffect
 import com.toggl.komposable.sample.digibank.transactions.TransactionsAction
@@ -27,7 +31,8 @@ data class AppState(
     val showCurrency: Boolean = true,
     val portfolioUIState: PortfolioUIState = PortfolioUIState(),
     val accountDetailsUIState: AccountDetailsUIState = AccountDetailsUIState(),
-    val transactionsUIState: TransactionsUIState = TransactionsUIState()
+    val transactionsUIState: TransactionsUIState = TransactionsUIState(),
+    val profileUIState: ProfileUIState = ProfileUIState(),
 )
 
 sealed class GlobalAction {
@@ -39,11 +44,14 @@ sealed class GlobalAction {
     data class TransactionsActions(val action: TransactionsAction) : GlobalAction()
     @WrapperAction
     data class SettingActions(val action: SettingAction) : GlobalAction()
+    @WrapperAction
+    data class ProfileActions(val action: ProfileAction) : GlobalAction()
 }
 
 val transactionsReducer = TransactionsReducer(LoadTransactionsEffect())
 val accountDetailsReducer = AccountDetailsReducer()
 val portfolioReducer = PortfolioReducer(LoadPortfolioEffect())
+val profileReducer = ProfileReducer(LoadProfileEffect())
 val globalReducerInstance = GlobalReducer()
 
 val globalReducer: Reducer<AppState, GlobalAction> = combine(
@@ -64,6 +72,12 @@ val globalReducer: Reducer<AppState, GlobalAction> = combine(
         mapToLocalAction = { (it as? GlobalAction.PortfolioActions)?.action },
         mapToGlobalState = { globalState, portfolioState -> globalState.copy(portfolioUIState = portfolioState) },
         mapToGlobalAction = { GlobalAction.PortfolioActions(it) }
+    ),
+    profileReducer.pullback(
+        mapToLocalState = { it.profileUIState },
+        mapToLocalAction = { (it as? GlobalAction.ProfileActions)?.action },
+        mapToGlobalState = { globalState, profileState -> globalState.copy(profileUIState = profileState) },
+        mapToGlobalAction = { GlobalAction.ProfileActions(it) }
     ),
     globalReducerInstance.pullback(
         mapToLocalState = { it },

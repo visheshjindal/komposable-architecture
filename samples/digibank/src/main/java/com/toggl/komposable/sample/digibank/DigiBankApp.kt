@@ -1,5 +1,6 @@
 package com.toggl.komposable.sample.digibank
 
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -20,6 +21,8 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -35,15 +38,30 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
 import com.toggl.komposable.sample.digibank.accounts.Accounts
+import com.toggl.komposable.sample.digibank.data.UserDetails
 import com.toggl.komposable.sample.digibank.portfolio.Portfolio
+import com.toggl.komposable.sample.digibank.profile.ProfileAction
 import com.toggl.komposable.sample.digibank.settings.SettingsPage
 
 @Composable
 fun DigiBankApp() {
     val navController = rememberNavController()
+    val appState by appStore.state.collectAsState(initial = AppState())
+
+    LaunchedEffect(Unit) {
+        appStore.send(GlobalAction.ProfileActions(ProfileAction.LoadProfile))
+    }
+
     Scaffold(
         topBar = {
-            GreetingsAppBar()
+            AnimatedContent(targetState = appState.profileUIState.isLoading, label = "Top bar" ) { isLoading ->
+                if (isLoading) {
+                    Text(text = "Welcome Back!", style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(16.dp))
+                } else {
+                    GreetingsAppBar(appState.profileUIState.userDetails)
+                }
+            }
+
         },
         bottomBar = {
             BottomNavigationBar(navController)
@@ -103,13 +121,13 @@ fun NavigationHost(navController: NavHostController) {
 }
 
 @Composable
-fun GreetingsAppBar() {
+fun GreetingsAppBar(userDetails: UserDetails) {
     Row(
         modifier = Modifier.padding(16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         AsyncImage(
-            model = "https://avatar.iran.liara.run/public",
+            model = userDetails.profilePicture,
             contentDescription = "User Avatar",
             contentScale = ContentScale.Crop,
             modifier = Modifier
@@ -118,7 +136,7 @@ fun GreetingsAppBar() {
         )
         Spacer(modifier = Modifier.width(8.dp))
         Column {
-            Text("John Doe", style = MaterialTheme.typography.titleMedium)
+            Text("${userDetails.first} ${userDetails.last}", style = MaterialTheme.typography.titleMedium)
             Text("Welcome back!", style = MaterialTheme.typography.bodySmall)
         }
     }

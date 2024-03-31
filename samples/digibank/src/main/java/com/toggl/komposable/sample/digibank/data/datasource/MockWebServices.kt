@@ -109,6 +109,24 @@ val mockEngine = MockEngine { request ->
             )
         }
 
+        "/userDetails" -> {
+            val response = """
+                {
+                    "first": "John",
+                    "last": "Doe",
+                    "email": "john.doe@example.com",
+                    "phone": "+1234567890",
+                    "address": "123 Main St, Springfield, IL 62701",
+                    "profilePicture": "https://avatar.iran.liara.run/public",
+                    "currency": "USD"
+                }
+            """.trimIndent()
+            respond(
+                content = response,
+                headers = responseHeader
+            )
+        }
+
         else -> error("Unhandled ${request.url.encodedPath}")
     }
 
