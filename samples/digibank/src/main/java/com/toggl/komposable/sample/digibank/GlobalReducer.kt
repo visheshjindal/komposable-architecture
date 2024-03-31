@@ -14,19 +14,12 @@ class GlobalReducer : Reducer<AppState, GlobalAction> {
         return when (action) {
             is GlobalAction.SettingActions -> {
                 when (action.action) {
-                    is SettingAction.ToggledShowBalance -> {
-                        state.copy(isLongPressBalanceEnabled = action.action.isEnabled)
-                            .withoutEffect()
-                    }
 
                     is SettingAction.ToggledShowCurrency -> {
                         state.copy(showCurrency = action.action.isEnabled).withoutEffect()
                     }
 
-                    is SettingAction.ToggledShowPortfolioValue -> {
-                        state.copy(isLongPressPortfolioEnabled = action.action.isEnabled)
-                            .withoutEffect()
-                    }
+
                 }
             }
 

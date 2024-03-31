@@ -31,20 +31,6 @@ fun SettingsPage() {
             modifier = Modifier.padding(16.dp)
         )
         SettingsCard(
-            label = stringResource(R.string.long_press_to_show_balance),
-            isChecked = state.isLongPressBalanceEnabled,
-            onCheckedChange = { newValue ->
-                appStore.send(mapSettingActionToGlobalAction(SettingAction.ToggledShowBalance(newValue)))
-            }
-        )
-        SettingsCard(
-            label = stringResource(R.string.long_press_to_portfolio_value),
-            isChecked = state.isLongPressPortfolioEnabled,
-            onCheckedChange = { newValue ->
-                appStore.send(mapSettingActionToGlobalAction(SettingAction.ToggledShowPortfolioValue(newValue)))
-            }
-        )
-        SettingsCard(
             label = stringResource(R.string.show_currency),
             isChecked = state.showCurrency,
             onCheckedChange = { newValue ->

@@ -24,8 +24,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlin.coroutines.CoroutineContext
 
 data class AppState(
-    val isLongPressBalanceEnabled: Boolean = false,
-    val isLongPressPortfolioEnabled: Boolean = false,
     val showCurrency: Boolean = true,
     val portfolioUIState: PortfolioUIState = PortfolioUIState(),
     val accountDetailsUIState: AccountDetailsUIState = AccountDetailsUIState(),
