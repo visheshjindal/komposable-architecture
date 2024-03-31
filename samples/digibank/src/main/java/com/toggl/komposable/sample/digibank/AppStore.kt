@@ -8,6 +8,7 @@ import com.toggl.komposable.extensions.pullback
 import com.toggl.komposable.sample.digibank.accounts.AccountDetailsAction
 import com.toggl.komposable.sample.digibank.accounts.AccountDetailsReducer
 import com.toggl.komposable.sample.digibank.accounts.AccountDetailsUIState
+import com.toggl.komposable.sample.digibank.navigation.ScreenRoutes
 import com.toggl.komposable.sample.digibank.portfolio.LoadPortfolioEffect
 import com.toggl.komposable.sample.digibank.portfolio.PortfolioAction
 import com.toggl.komposable.sample.digibank.portfolio.PortfolioReducer
@@ -28,6 +29,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlin.coroutines.CoroutineContext
 
 data class AppState(
+    val currentRoutes: ScreenRoutes = ScreenRoutes.BottomBar,
     val showCurrency: Boolean = true,
     val portfolioUIState: PortfolioUIState = PortfolioUIState(),
     val accountDetailsUIState: AccountDetailsUIState = AccountDetailsUIState(),
@@ -36,6 +38,7 @@ data class AppState(
 )
 
 sealed class GlobalAction {
+    data object OnTapNavigationToProfile: GlobalAction()
     @WrapperAction
     data class PortfolioActions(val action: PortfolioAction) : GlobalAction()
     @WrapperAction

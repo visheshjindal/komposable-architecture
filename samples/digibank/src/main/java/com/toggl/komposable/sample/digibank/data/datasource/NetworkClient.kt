@@ -36,7 +36,7 @@ class NetworkClient(
     }
 
     suspend fun fetchTransactions(): Result<List<TransactionDetails>> = runCatching {
-        delay(3000)
+        delay(1000)
         client.get("$baseUrl/transactions").body()
     }
 

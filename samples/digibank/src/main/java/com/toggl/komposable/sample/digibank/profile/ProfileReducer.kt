@@ -1,5 +1,6 @@
 package com.toggl.komposable.sample.digibank.profile
 
+import com.toggl.komposable.architecture.NoEffect
 import com.toggl.komposable.architecture.ReduceResult
 import com.toggl.komposable.architecture.Reducer
 import com.toggl.komposable.extensions.withSuspendEffect
@@ -27,6 +28,8 @@ class ProfileReducer(private val loadProfileEffect: LoadProfileEffect) :
                 isLoading = false,
                 error = action.error
             ).withoutEffect()
+
+            else -> ReduceResult(state, NoEffect)
         }
     }
 }

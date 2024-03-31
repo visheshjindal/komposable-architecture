@@ -1,22 +1,21 @@
 package com.toggl.komposable.sample.digibank
 
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AccountBalance
-import androidx.compose.material.icons.filled.Addchart
-import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.ArrowCircleLeft
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -27,21 +26,15 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
-import androidx.navigation.NavHostController
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
-import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
-import com.toggl.komposable.sample.digibank.accounts.Accounts
 import com.toggl.komposable.sample.digibank.data.UserDetails
-import com.toggl.komposable.sample.digibank.portfolio.Portfolio
+import com.toggl.komposable.sample.digibank.navigation.BottomNavigationBar
+import com.toggl.komposable.sample.digibank.navigation.NavigationHost
+import com.toggl.komposable.sample.digibank.navigation.ScreenRoutes
 import com.toggl.komposable.sample.digibank.profile.ProfileAction
-import com.toggl.komposable.sample.digibank.settings.SettingsPage
 
 @Composable
 fun DigiBankApp() {
@@ -54,17 +47,44 @@ fun DigiBankApp() {
 
     Scaffold(
         topBar = {
-            AnimatedContent(targetState = appState.profileUIState.isLoading, label = "Top bar" ) { isLoading ->
-                if (isLoading) {
-                    Text(text = "Welcome Back!", style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(16.dp))
-                } else {
-                    GreetingsAppBar(appState.profileUIState.userDetails)
-                }
-            }
+            AnimatedContent(targetState = appState.currentRoutes, label = "Title Bar") { routes ->
 
+                when (routes) {
+                    is ScreenRoutes.BottomBar -> {
+                        AnimatedContent(
+                            targetState = appState.profileUIState.isLoading,
+                            label = "Top bar"
+                        ) { isLoading ->
+                            if (isLoading) {
+                                Text(
+                                    text = "Welcome Back!",
+                                    style = MaterialTheme.typography.titleLarge,
+                                    modifier = Modifier.padding(16.dp)
+                                )
+                            } else {
+                                HomeAppBar(appState.profileUIState.userDetails) {
+                                    appStore.send(GlobalAction.OnTapNavigationToProfile)
+                                    navController.navigate(ScreenRoutes.Profile.route)
+
+                                }
+                            }
+                        }
+                    }
+
+                    is ScreenRoutes.Profile -> {
+                        BackAppBar {
+                            appStore.send(GlobalAction.ProfileActions(ProfileAction.BackPressed))
+                            navController.popBackStack()
+                        }
+                    }
+                }
+
+            }
         },
         bottomBar = {
-            BottomNavigationBar(navController)
+            AnimatedVisibility(visible = appState.currentRoutes == ScreenRoutes.BottomBar) {
+                BottomNavigationBar(navController)
+            }
         }
     ) {
         Surface(
@@ -78,50 +98,8 @@ fun DigiBankApp() {
     }
 }
 
-sealed class BottomNavigationItems(val route: String, val icon: ImageVector, val label: String) {
-    data object Accounts : BottomNavigationItems("accounts", Icons.Filled.AccountBalance, "Accounts")
-    data object Portfolio : BottomNavigationItems("portfolio", Icons.Filled.Addchart, "Portfolio")
-    data object Settings : BottomNavigationItems("settings", Icons.Filled.Settings, "Settings")
-}
-
-val bottomNavigationItems = listOf(
-    BottomNavigationItems.Accounts,
-    BottomNavigationItems.Portfolio,
-    BottomNavigationItems.Settings
-)
-
 @Composable
-fun BottomNavigationBar(navController: NavController) {
-    NavigationBar {
-        val navBackStackEntry by navController.currentBackStackEntryAsState()
-        val currentRoute = navBackStackEntry?.destination?.route
-
-        bottomNavigationItems.forEach { screen ->
-            NavigationBarItem(
-                icon = { Icon(screen.icon, contentDescription = screen.label) },
-                label = { Text(screen.label) },
-                selected = currentRoute == screen.route,
-                onClick = {
-                    navController.navigate(screen.route) {
-                        launchSingleTop = true
-                    }
-                }
-            )
-        }
-    }
-}
-
-@Composable
-fun NavigationHost(navController: NavHostController) {
-    NavHost(navController, startDestination = BottomNavigationItems.Accounts.route) {
-        composable(BottomNavigationItems.Accounts.route) { Accounts() }
-        composable(BottomNavigationItems.Portfolio.route) { Portfolio() }
-        composable(BottomNavigationItems.Settings.route) { SettingsPage() }
-    }
-}
-
-@Composable
-fun GreetingsAppBar(userDetails: UserDetails) {
+fun HomeAppBar(userDetails: UserDetails, onProfilePictureClick: () -> Unit = {}) {
     Row(
         modifier = Modifier.padding(16.dp),
         verticalAlignment = Alignment.CenterVertically
@@ -133,11 +111,34 @@ fun GreetingsAppBar(userDetails: UserDetails) {
             modifier = Modifier
                 .size(48.dp)
                 .clip(CircleShape)
+                .clickable { onProfilePictureClick() }
         )
         Spacer(modifier = Modifier.width(8.dp))
         Column {
-            Text("${userDetails.first} ${userDetails.last}", style = MaterialTheme.typography.titleMedium)
+            Text(
+                "${userDetails.first} ${userDetails.last}",
+                style = MaterialTheme.typography.titleMedium
+            )
             Text("Welcome back!", style = MaterialTheme.typography.bodySmall)
         }
+    }
+}
+
+@Composable
+fun BackAppBar(onBackClick: () -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(
+            imageVector = Icons.Filled.ArrowCircleLeft,
+            tint = MaterialTheme.colorScheme.surfaceTint,
+            contentDescription = "Back",
+            modifier = Modifier
+                .size(48.dp)
+                .clickable { onBackClick() }
+        )
     }
 }
